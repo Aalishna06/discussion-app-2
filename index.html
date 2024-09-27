@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discussion App</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* General Page Styling */
+        body {
+            background-color: #f5f5f5;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .container-fluid {
+            max-width: 1200px;
+            margin: 20px auto;
+        }
+
+        /* Left Pane Styling */
+        .left-pane {
+            background-color: #ffffff;
+            border-right: 2px solid #e0e0e0;
+        }
+
+        .question-box {
+            cursor: pointer;
+            padding: 15px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .question-box:hover {
+            background-color: #f8f9fa;
+        }
+
+        .question-box strong {
+            font-size: 1.1em;
+            color: #007bff;
+        }
+
+        .question-box button {
+            margin-right: 5px;
+        }
+
+        .left-pane button,
+        .left-pane input {
+            border-radius: 50px;
+        }
+
+        /* Right Pane Styling */
+        .right-pane {
+            background-color: #ffffff;
+            border-left: 2px solid #e0e0e0;
+        }
+
+        #question-form, #question-details {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h4, h5 {
+            font-weight: 600;
+            color: #343a40;
+        }
+
+        label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        #question-title {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #007bff;
+        }
+
+        /* Input and Textarea Styling */
+        .form-control {
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+        /* Button Styling */
+        button {
+            border-radius: 5px;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        button:focus {
+            box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border: none;
+        }
+
+        .btn-primary:hover, .btn-success:hover, .btn-danger:hover {
+            opacity: 0.9;
+        }
+
+        /* Response List */
+        #responses-list .response-box {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        /* Upvote/Downvote Button */
+        .btn-sm {
+            padding: 0.3rem 0.6rem;
+        }
+
+        /* Search Box */
+        #search {
+            padding: 8px 15px;
+            border-radius: 50px;
+            border: 1px solid #ced4da;
+            transition: box-shadow 0.3s ease;
+        }
+
+        #search:focus {
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+        /* Scrollable Pane */
+        .left-pane, .right-pane {
+            overflow-y: auto;
+        }
+
+        #question-list {
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .left-pane, .right-pane {
+                border: none;
+            }
+
+            .left-pane {
+                border-bottom: 1px solid #e0e0e0;
+            }
+
+            .row {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Left Pane -->
+        <div class="col-md-4 left-pane p-3 border-right">
+            <div class="d-flex mb-3">
+                <button class="btn btn-primary mr-2" onclick="showQuestionForm()">New Question</button>
+                <input type="text" class="form-control" id="search" placeholder="Search..." oninput="filterQuestions()">
+            </div>
+            <div id="question-list">
+                <!-- Questions will be appended here -->
+            </div>
+        </div>
+
+        <!-- Right Pane -->
+        <div class="col-md-8 right-pane p-3">
+            <!-- Question form by default -->
+            <div id="question-form">
+                <h4>Ask a Question</h4>
+                <div class="form-group">
+                    <label for="title">Title:</label>
+                    <input type="text" class="form-control" id="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="question">Question:</label>
+                    <textarea class="form-control" id="question" required></textarea>
+                </div>
+                <button class="btn btn-success" onclick="addQuestion()">Submit Question</button>
+            </div>
+
+            <!-- Question details + responses (hidden by default) -->
+            <div id="question-details" class="d-none">
+                <h4 id="question-title"></h4>
+                <p id="question-text"></p>
+                <button class="btn btn-danger" id="resolve-btn" onclick="resolveQuestion()">Resolve</button>
+
+                <h5 class="mt-4">Responses</h5>
+                <div id="responses-list">
+                    <!-- Responses will be appended here -->
+                </div>
+
+                <h5 class="mt-4">Add Response</h5>
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input type="text" class="form-control" id="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="comment">Comment:</label>
+                    <textarea class="form-control" id="comment" required></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="addResponse()">Submit Response</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let questions = [];
+let currentQuestion = null;
+
+// Add a question
+function addQuestion() {
+    const title = document.getElementById('title').value;
+    const questionText = document.getElementById('question').value;
+
+    if (title && questionText) {
+        const question = {
+            id: questions.length + 1,
+            title: title,
+            text: questionText,
+            responses: [],
+            upvotes: 0,
+            downvotes: 0
+        };
+        questions.push(question);
+        renderQuestions();
+        document.getElementById('title').value = '';
+        document.getElementById('question').value = '';
+    } else {
+        alert("Both fields are required.");
+    }
+}
+
+// Display questions in the left pane
+function renderQuestions() {
+    const questionList = document.getElementById('question-list');
+    questionList.innerHTML = '';
+    
+    questions.sort((a, b) => (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes));
+
+    questions.forEach((question) => {
+        const div = document.createElement('div');
+        div.className = 'question-box p-2 border-bottom';
+        div.innerHTML = `
+            <div>
+                <strong>${question.title}</strong> (${question.upvotes - question.downvotes})
+            </div>
+            <button class="btn btn-sm btn-success" onclick="upvote(${question.id})">Upvote</button>
+            <button class="btn btn-sm btn-danger" onclick="downvote(${question.id})">Downvote</button>
+        `;
+        div.onclick = () => showQuestionDetails(question.id);
+        questionList.appendChild(div);
+    });
+}
+
+// Upvote a question
+function upvote(id) {
+    const question = questions.find(q => q.id === id);
+    question.upvotes++;
+    renderQuestions();
+}
+
+// Downvote a question
+function downvote(id) {
+    const question = questions.find(q => q.id === id);
+    question.downvotes++;
+    renderQuestions();
+}
+
+// Show question details in the right pane
+function showQuestionDetails(id) {
+    currentQuestion = questions.find(q => q.id === id);
+
+    document.getElementById('question-title').textContent = currentQuestion.title;
+    document.getElementById('question-text').textContent = currentQuestion.text;
+    renderResponses();
+
+    document.getElementById('
+
